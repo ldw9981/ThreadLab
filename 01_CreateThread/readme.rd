@@ -1,13 +1,7 @@
-# ThreadLab
+쓰레드 생성하기
 
-## 개요
-Windows 기반 멀티스레드 실습용 엔진 프로젝트
-
-## 주요 기능
-- _beginthreadex 기반 스레드 생성
-- 작업 큐 + condition_variable
-- TLS 기반 ThreadContext
-
-## 빌드 방법
-- Visual Studio 2022
-- x64 / Debug
+1. C Runtime _beginthreadex로 생성하기
+2. STL std::thread로 생성하기
+3. WinAPI로 생성하기
+  *주의* 내부에서 CRT사용에 필요한 쓰레드 데이터를 초기화를 하지않으므로
+  CRT나 STL을 사용한다면 반드시  1,2번 방법으로 생성해야 한다.
