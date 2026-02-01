@@ -1,4 +1,4 @@
-1. 어떻게 OS는 CPU에서 여러 프로그램을 실행할수 있을까?
+### 1. 어떻게 OS는 CPU에서 여러 프로그램을 실행할수 있을까?
 
 CPU는 한 순간에 하나의 명령어 흐름만 실행하지만, 운영체제가 아주 빠르게 실행 대상을 바꿔가며
 여러 프로그램(쓰레드가)이 동시에 실행되는 것처럼 보이게 만든다. 이 역할을 하는것이 OS의 스케줄러(scheduler)이다.
@@ -26,8 +26,9 @@ OS 커널 코드로 점프
 스케줄러 실행
 
 
-2. OS에서 스레드 상태(Thread State)의 정의
+### 2. OS에서 스레드 상태(Thread State)의 정의
 
+```
 [Ready] , [Running], [Blocked(Waiting)], [Terminated]
 
 
@@ -59,7 +60,7 @@ RUNNING -> READY: 선점(퀀텀 소진/우선순위)
 RUNNING -> BLOCKED: Wait/Sleep/I-O로 대기 진입
 BLOCKED -> READY: 이벤트/I-O 완료로 깨어남(unblock)
 RUNNING -> TERMINATED: 스레드 함수 종료(return/exit)
-
+```
 
 ## Running (실행 중)
 
