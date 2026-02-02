@@ -7,6 +7,19 @@
   CRT나 STL을 사용한다면 반드시  1,2번 방법으로 생성해야 한다.
 
 
+실행/디버깅 스위칭(편하게)
+
+01_CreateThread 프로젝트는 `THREADLAB_CREATE_THREAD_ENTRY` 매크로 값으로 엔트리(main)를 바꿔서
+Win/CRT 버전과 std::thread 버전을 빠르게 스위칭할 수 있다.
+
+* `THREADLAB_CREATE_THREAD_ENTRY=1` (기본값) : WinAPI + CRT + Std 순서로 실행
+* `THREADLAB_CREATE_THREAD_ENTRY=2` : std::thread만 실행
+
+설정 방법(Visual Studio)
+프로젝트 속성 -> C/C++ -> 전처리기 -> 전처리기 정의에
+`THREADLAB_CREATE_THREAD_ENTRY=2` 처럼 추가하면 된다.
+
+
 
   프로세스는 운영체제 관점에서 특정 프로그램의 실행 단위이다.
 각 프로세스는 가상의 논리적인 주소 공간을 가지며, 

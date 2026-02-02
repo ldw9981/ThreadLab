@@ -51,7 +51,7 @@ BLOCKED -> READY: 이벤트/I-O 완료로 깨어남(unblock)
 RUNNING -> TERMINATED: 스레드 함수 종료(return/exit)
 ```
 
-#### Running (실행 중)
+#### [Running] (실행 중)
 
 의미
 * 스레드가 지금 이 순간 실제 CPU 코어 위에서 명령어를 실행 중인 상태.
@@ -69,7 +69,7 @@ Running에서 빠져나오는 대표 케이스
  3. 락/이벤트/I/O를 기다리는 API 호출 → Blocked로
  4. 스레드 종료 → Terminated로
 
-#### Ready (실행 가능, 하지만 CPU를 못 받은 상태)
+#### [Ready] (실행 가능, 하지만 CPU를 못 받은 상태)
 
 의미
 * 스레드가 실행에 필요한 조건을 모두 만족했는데,
@@ -92,7 +92,7 @@ Ready 상태에서 “못 도는” 이유 예시
 * 어피니티 때문에 특정 코어만 기다리느라 지연
 
 
-#### Blocked / Waiting (대기 중)
+#### [Blocked / Waiting] (대기 중)
 
 의미
 * 스레드가 스스로 실행을 못 하는 상태 -> 어떤 조건이 충족될 때까지 기다려야 함
@@ -118,3 +118,13 @@ Blocked에서 깨는 대표 케이스
 * I/O 완료
 * 조건변수 notify
 * 타임아웃 발생(그냥 Ready로 돌아오되 “실패/timeout” 결과)
+
+---
+
+### 3. 실습: 메인 스레드에서 Pause/Continue 제어하기
+
+02_ControlThread 프로젝트는 메인 스레드가 워커 스레드를 생성하고, 워커 스레드는 1초마다 `Tick` / `Tock`을 번갈아 출력한다.
+
+키 입력(메인 스레드)
+* `T`: Pause <-> Continue 토글
+* `Q`: 종료
