@@ -1,3 +1,6 @@
+02_SignalWaiting
+======================
+
 ### 1. 어떻게 OS는 CPU에서 여러 프로그램을 실행할수 있을까?
 
  CPU는 한 순간에 하나의 명령어 흐름만 실행하지만, 운영체제가 아주 빠르게 실행 대상을 바꿔가며
@@ -119,9 +122,59 @@ Blocked에서 깨는 대표 케이스
 * 조건변수 notify
 * 타임아웃 발생(그냥 Ready로 돌아오되 “실패/timeout” 결과)
 
----
 
-### 3. 실습: 메인 스레드에서 Pause/Continue 제어하기
+### 3. WinAPI 과 STL 의 쓰레드 프로그래밍  
+
+WinAPI는 운영체제의 ‘객체’를 직접 다루게 하고,
+C++ STL은 그 객체들을 사용하는 ‘패턴’을 추상화한다.
+STL은 내부에서 OS를 쓰지만, 그 사실을 의도적으로 숨긴다.
+
+WinAPI
+* OS 리소스 중심
+* 커널 객체(Event, Mutex, Semaphore, Thread)
+* 상태(signaled / non-signaled)가 명확
+* Wait/Set/Reset 같은 명령형 제어
+
+C++ STL
+* 의도/사용 패턴 중심
+* 상호배제, 조건 대기, 작업 완료 대기
+* 상태는 사용자 코드에 분산
+* RAII + 규칙 강제
+
+
+#### OS에 비종속된 개념 기반으로 STL은 다음의 솔루션을 제공한다.
+
+(1) 동시에 접근해도 괜찮은가? 
+→ 상호배제 (Mutual Exclusion)
+
+(2) 어떤 조건이 될 때까지 기다려야 하는가?
+→ 조건 대기 (Condition Waiting)
+
+(3) 작업이 끝났음을 어떻게 알릴 것인가?
+→ 완료 신호 (Completion / Notification)
+
+(4) 자원이 몇 개 있는가?
+→ 자원 수 제한 (Counting)
+
+(5) 언제 그만두라고 알려줄 것인가?
+→ 종료 요청 (Cancellation / Stop)
+
+
+| 보편 개념 (OS 비종속) | STL 도구                   
+| -------------- 
+| 상호배제      | `std::mutex`                      
+| 조건 대기     | `std::condition_variable`         
+| 완료 대기     | `std::future` / `promise`         
+| 자원 카운트   | `std::counting_semaphore` (C++20) 
+| 생명주기 제어 | `std::jthread` / `stop_token`    
+| 원자적 상태   | `std::atomic`                     
+
+
+
+
+
+
+### 4. 실습: 메인 스레드에서 Pause/Continue 제어하기
 
 02_ControlThread 프로젝트는 메인 스레드가 워커 스레드를 생성하고, 워커 스레드는 1초마다 `Tick` / `Tock`을 번갈아 출력한다.
 

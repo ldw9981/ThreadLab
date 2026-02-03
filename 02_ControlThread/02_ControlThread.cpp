@@ -2,6 +2,6 @@
 
 int main()
 {
-	WMain();
+	SMain();
 	return 0;
 }

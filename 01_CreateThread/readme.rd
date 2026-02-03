@@ -1,4 +1,4 @@
-쓰레드 생성하기
+01_ThreadLifeCycle
 
 1. C Runtime _beginthreadex로 생성하기
 2. STL std::thread로 생성하기
