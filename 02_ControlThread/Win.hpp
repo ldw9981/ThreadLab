@@ -1,46 +1,43 @@
 ﻿#pragma once
 
-#pragma once
-
 #include <Windows.h>
 #include <conio.h>   // _kbhit, _getch
 #include <process.h> // _beginthreadex
-
 #include <iostream>
 
-namespace
+
+struct WinThreadControl
 {
-	struct WinThreadControl
+	//manual-reset은 이벤트를 수동으로 재설정할 때까지 신호 상태를 유지함을 의미합니다.
+	//auto-reset은 이벤트가 신호 상태일 때 단일 대기 스레드를 깨우고 자동으로 비신호 상태로 재설정됨을 의미합니다.
+	HANDLE exitEvent = nullptr; // manual-reset, signaled => exit
+	HANDLE runEvent = nullptr;  // manual-reset, signaled => running, reset => paused
+};
+
+unsigned __stdcall TickTockThreadProc(void* param)
+{
+	const auto* ctrl = static_cast<const WinThreadControl*>(param);
+	bool tick = true;
+
+	while (true)
 	{
-		// manual-reset은 이벤트를 수동으로 재설정할 때까지 신호 상태를 유지함을 의미합니다.
-		// auto-reset은 이벤트가 신호 상태일 때 단일 대기 스레드를 깨우고 자동으로 비신호 상태로 재설정됨을 의미합니다.
-		HANDLE exitEvent = nullptr; // manual-reset, signaled => exit
-		HANDLE runEvent = nullptr;  // manual-reset, signaled => running, reset => paused
-	};
+		// 2개의 신호를 기다림 
+		HANDLE waits[2] = { ctrl->exitEvent, ctrl->runEvent };
+		const DWORD w = ::WaitForMultipleObjects(2, waits, FALSE, INFINITE);
+		if (w == WAIT_OBJECT_0) // exitEvent 이면 쓰레드 종료
+			break;
 
-	unsigned __stdcall TickTockThreadProc(void* param)
-	{
-		const auto* ctrl = static_cast<const WinThreadControl*>(param);
-		bool tick = true;
-
-		while (true)
-		{
-			HANDLE waits[2] = { ctrl->exitEvent, ctrl->runEvent };
-			const DWORD w = ::WaitForMultipleObjects(2, waits, FALSE, INFINITE);
-			if (w == WAIT_OBJECT_0)
-				break;
-
-			std::cout << (tick ? "Tick" : "Tock") << "\n";
-			tick = !tick;
-			::Sleep(1000);
-		}
-
-		return 0;
+		// runEvent 이면 아래처리
+		std::cout << (tick ? "Tick" : "Tock") << "\n";
+		tick = !tick;
+		::Sleep(1000);
 	}
+
+	return 0;
 }
 
 
-inline int WMain()
+int WMain()
 {
 	std::cout << "02_ControlThread - Tick/Tock worker (Press T to Pause/Continue, Q to Quit)\n";
 	std::cout << "main tid=" << ::GetCurrentThreadId() << "\n\n";
