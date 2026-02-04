@@ -44,7 +44,7 @@ void TickTockWorker(StdThreadControl* ctrl)
 
 int SMain()
 {
-	std::cout << "02_ControlThread (std::thread) - Tick/Tock worker (Press T to Pause/Continue, Q to Quit)\n";
+	std::cout << "03_SignalWaiting (std::thread) - Tick/Tock worker (Press T to Pause/Continue, Q to Quit)\n";
 	std::cout << "main tid=" << ::GetCurrentThreadId() << "\n\n";
 
 	StdThreadControl ctrl;

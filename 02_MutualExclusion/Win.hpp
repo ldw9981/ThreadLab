@@ -43,7 +43,7 @@ int WMain()
 	args.cs = &cs;
 	args.max = kMax;
 
-	std::cout << "03_MutualExclusion (WinAPI _beginthreadex + CRITICAL_SECTION)\n";
+	std::cout << "02_MutualExclusion (WinAPI _beginthreadex + CRITICAL_SECTION)\n";
 	std::cout << "main tid=" << ::GetCurrentThreadId() << "\n";
 
 	HANDLE threads[kThreadCount] = {};

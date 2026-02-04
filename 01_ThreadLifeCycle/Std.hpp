@@ -18,7 +18,7 @@ void ThreadProc()
 
 int SMain()
 {
-    std::cout << "01_CreateThread - std::thread)\n";
+	std::cout << "01_ThreadLifeCycle - std::thread)\n";
 	std::cout << "\n=== C++ std::thread version ===\n";
 	std::thread worker(&ThreadProc);
 	worker.join(); // ::WaitForSingleObject(hThread, INFINITE) 과 동일

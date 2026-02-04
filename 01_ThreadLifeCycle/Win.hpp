@@ -84,7 +84,7 @@ void RunCrtThread()
 
 int WMain()
 {
-    std::cout << "01_CreateThread - Win/CRT \n";
+    std::cout << "01_ThreadLifeCycle - Win/CRT \n";
     RunWinApiThread();
     RunCrtThread();
     return 0;

@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{dcfb0e49-5f4f-4626-8cab-811507f0dd81}</ProjectGuid>
-    <RootNamespace>My02ControlThread</RootNamespace>
+    <ProjectGuid>{50aaa30b-9355-44e5-be5e-ac47db4a575e}</ProjectGuid>
+    <RootNamespace>My02MutualExclusion</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -123,9 +123,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="02_ControlThread.cpp" />
-    <ClCompile Include="Win.hpp" />
-    <ClCompile Include="Std.hpp" />
+    <ClCompile Include="02_MutualExclusion.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Std.hpp" />
+    <ClInclude Include="Win.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />

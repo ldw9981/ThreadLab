@@ -15,17 +15,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Std.hpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="Win.hpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="01_CreateThread.cpp">
+    <ClCompile Include="Std.hpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="03_SignalWaiting.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="readme.rd" />
+    <None Include="readme.md" />
   </ItemGroup>
 </Project>

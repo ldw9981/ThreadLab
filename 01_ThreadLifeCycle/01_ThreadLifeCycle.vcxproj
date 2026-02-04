@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{50aaa30b-9355-44e5-be5e-ac47db4a575e}</ProjectGuid>
-    <RootNamespace>My03MutualExclusion</RootNamespace>
+    <ProjectGuid>{c95f9fc7-7d4d-4c5b-94c9-bf0333bf012d}</ProjectGuid>
+    <RootNamespace>My01ThreadLifeCycle</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -123,14 +123,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="03_MutualExclusion.cpp" />
+    <ClCompile Include="Std.hpp" />
+    <ClCompile Include="Win.hpp" />
+    <ClCompile Include="01_ThreadLifeCycle.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Std.hpp" />
-    <ClInclude Include="Win.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="readme.md" />
+    <Text Include="readme.rd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

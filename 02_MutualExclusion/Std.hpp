@@ -37,7 +37,7 @@ int SMain()
 	args.totalMutex = &totalMutex;
 	args.max = kMax;
 
-	std::cout << "03_MutualExclusion (std::thread + std::mutex)\n";
+	std::cout << "02_MutualExclusion (std::thread + std::mutex)\n";
 	std::cout << "main tid=" << ::GetCurrentThreadId() << "\n";
 
 	std::thread threads[kThreadCount];

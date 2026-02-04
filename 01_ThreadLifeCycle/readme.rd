@@ -9,7 +9,7 @@
 
 실행/디버깅 스위칭(편하게)
 
-01_CreateThread 프로젝트는 `THREADLAB_CREATE_THREAD_ENTRY` 매크로 값으로 엔트리(main)를 바꿔서
+01_ThreadLifeCycle 프로젝트는 `THREADLAB_CREATE_THREAD_ENTRY` 매크로 값으로 엔트리(main)를 바꿔서
 Win/CRT 버전과 std::thread 버전을 빠르게 스위칭할 수 있다.
 
 * `THREADLAB_CREATE_THREAD_ENTRY=1` (기본값) : WinAPI + CRT + Std 순서로 실행

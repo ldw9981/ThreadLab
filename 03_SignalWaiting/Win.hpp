@@ -39,7 +39,7 @@ unsigned __stdcall TickTockThreadProc(void* param)
 
 int WMain()
 {
-	std::cout << "02_ControlThread - Tick/Tock worker (Press T to Pause/Continue, Q to Quit)\n";
+	std::cout << "03_SignalWaiting - Tick/Tock worker (Press T to Pause/Continue, Q to Quit)\n";
 	std::cout << "main tid=" << ::GetCurrentThreadId() << "\n\n";
 
 	WinThreadControl ctrl;

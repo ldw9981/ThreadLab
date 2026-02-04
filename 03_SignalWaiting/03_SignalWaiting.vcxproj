@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{c95f9fc7-7d4d-4c5b-94c9-bf0333bf012d}</ProjectGuid>
-    <RootNamespace>My01CreateThread</RootNamespace>
+    <ProjectGuid>{dcfb0e49-5f4f-4626-8cab-811507f0dd81}</ProjectGuid>
+    <RootNamespace>My03SignalWaiting</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -123,12 +123,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Std.hpp" />
+    <ClCompile Include="03_SignalWaiting.cpp" />
     <ClCompile Include="Win.hpp" />
-    <ClCompile Include="01_CreateThread.cpp" />
+    <ClCompile Include="Std.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="readme.rd" />
+    <None Include="readme.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

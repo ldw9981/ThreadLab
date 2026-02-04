@@ -15,19 +15,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="03_MutualExclusion.cpp">
+    <ClCompile Include="Std.hpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Win.hpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="01_ThreadLifeCycle.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Std.hpp">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Win.hpp">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="readme.md" />
+    <Text Include="readme.rd" />
   </ItemGroup>
 </Project>

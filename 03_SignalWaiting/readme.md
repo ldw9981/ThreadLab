@@ -1,4 +1,4 @@
-02_SignalWaiting
+03_SignalWaiting
 ======================
 
 ### 1. 어떻게 OS는 CPU에서 여러 프로그램을 실행할수 있을까?
@@ -176,7 +176,7 @@ C++ STL
 
 ### 4. 실습: 메인 스레드에서 Pause/Continue 제어하기
 
-02_ControlThread 프로젝트는 메인 스레드가 워커 스레드를 생성하고, 워커 스레드는 1초마다 `Tick` / `Tock`을 번갈아 출력한다.
+03_SignalWaiting 프로젝트는 메인 스레드가 워커 스레드를 생성하고, 워커 스레드는 1초마다 `Tick` / `Tock`을 번갈아 출력한다.
 
 키 입력(메인 스레드)
 * `T`: Pause <-> Continue 토글

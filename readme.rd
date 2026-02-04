@@ -1,5 +1,5 @@
-01_ThreadLifecycle
-02_SignalWaiting
-03_MutualExclusion
+01_ThreadLifeCycle
+02_MutualExclusion
+03_SignalWaiting
 04_ProducerConsumer
 05_WorkQueue
