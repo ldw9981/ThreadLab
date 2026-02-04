@@ -1,5 +1,6 @@
 
-#include "Common.h"
+#include "Std.hpp"
+#include "Win.hpp"
 
 int main()
 {

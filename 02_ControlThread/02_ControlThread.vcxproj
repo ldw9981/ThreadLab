@@ -124,14 +124,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="02_ControlThread.cpp" />
-    <ClCompile Include="Win.cpp" />
-    <ClCompile Include="Std.cpp" />
+    <ClCompile Include="Win.hpp" />
+    <ClCompile Include="Std.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Common.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
