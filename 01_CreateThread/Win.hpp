@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Windows.h>
 #include <process.h> // _beginthreadex
 #include <iostream>

@@ -1,3 +1,7 @@
+#pragma once
+
+#pragma once
+
 #include <Windows.h>
 
 #include <conio.h> // _kbhit, _getch
@@ -10,31 +14,26 @@
 
 namespace
 {
-	struct ThreadControl
-	{	
-		bool running = true;		 // 실행/일시정지 상태값
-		bool exitRequested = false;	 // 종료 요청 상태값
-		std::mutex m;				 // 상태값 접근 보호용 
-		std::condition_variable cv;	 // 어떤 조건이 참이 될 때까지 기다렸다가 깨우기”에 최적화된 도구		
+	struct StdThreadControl
+	{
+		bool running = true;         // 실행/일시정지 상태값
+		bool exitRequested = false;  // 종료 요청 상태값
+		std::mutex m;                // 상태값 접근 보호용
+		std::condition_variable cv;  // 조건 대기 도구
 	};
 
-	void TickTockWorker(ThreadControl* ctrl)
+	void TickTockWorker(StdThreadControl* ctrl)
 	{
-		// 출력 토글 상태 (Tick <-> Tock)
 		bool tick = true;
-
 		while (true)
-		{			
+		{
 			{
-				// scope-based lock 기반으로 참이 될때까지 대기
 				std::unique_lock<std::mutex> lock(ctrl->m);
-				ctrl->cv.wait(lock, [&] { return ctrl->exitRequested || ctrl->running; });				
-				
+				ctrl->cv.wait(lock, [&] { return ctrl->exitRequested || ctrl->running; });
 				if (ctrl->exitRequested)
 					break;
 			}
 
-			// 실제 작업: 1초마다 Tick/Tock 출력
 			std::cout << (tick ? "Tick" : "Tock") << "\n";
 			tick = !tick;
 			std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -42,12 +41,13 @@ namespace
 	}
 }
 
-int SMain()
+
+inline int SMain()
 {
 	std::cout << "02_ControlThread (std::thread) - Tick/Tock worker (Press T to Pause/Continue, Q to Quit)\n";
 	std::cout << "main tid=" << ::GetCurrentThreadId() << "\n\n";
 
-	ThreadControl ctrl;
+	StdThreadControl ctrl;
 	std::thread worker(&TickTockWorker, &ctrl);
 
 	// 메인 스레드: 키 입력으로 워커를 제어
@@ -60,7 +60,7 @@ int SMain()
 		{
 			const int ch = _getch();
 			if (ch == 't' || ch == 'T')
-			{				
+			{
 				running = !running;
 				// Scope-based lock 을 사용
 				{
@@ -77,7 +77,7 @@ int SMain()
 				// Scope-based lock 을 사용
 				{
 					std::lock_guard<std::mutex> lock(ctrl.m);
-					ctrl.exitRequested = true;	
+					ctrl.exitRequested = true;
 					ctrl.running = true;
 				}
 				// wait(), wait_for(), wait_until()로 대기 중인 모든 스레드를 깨웁니다.
