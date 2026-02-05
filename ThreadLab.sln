@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "03_SignalWaiting", "03_Sign
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "02_MutualExclusion", "02_MutualExclusion\02_MutualExclusion.vcxproj", "{50AAA30B-9355-44E5-BE5E-AC47DB4A575E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "04_ThreadResult", "04_ThreadResult\04_ThreadResult.vcxproj", "{E5C59C4F-0E46-41EA-A51F-3CFB9D7D7C81}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +43,14 @@ Global
 		{50AAA30B-9355-44E5-BE5E-AC47DB4A575E}.Release|x64.Build.0 = Release|x64
 		{50AAA30B-9355-44E5-BE5E-AC47DB4A575E}.Release|x86.ActiveCfg = Release|Win32
 		{50AAA30B-9355-44E5-BE5E-AC47DB4A575E}.Release|x86.Build.0 = Release|Win32
+		{E5C59C4F-0E46-41EA-A51F-3CFB9D7D7C81}.Debug|x64.ActiveCfg = Debug|x64
+		{E5C59C4F-0E46-41EA-A51F-3CFB9D7D7C81}.Debug|x64.Build.0 = Debug|x64
+		{E5C59C4F-0E46-41EA-A51F-3CFB9D7D7C81}.Debug|x86.ActiveCfg = Debug|Win32
+		{E5C59C4F-0E46-41EA-A51F-3CFB9D7D7C81}.Debug|x86.Build.0 = Debug|Win32
+		{E5C59C4F-0E46-41EA-A51F-3CFB9D7D7C81}.Release|x64.ActiveCfg = Release|x64
+		{E5C59C4F-0E46-41EA-A51F-3CFB9D7D7C81}.Release|x64.Build.0 = Release|x64
+		{E5C59C4F-0E46-41EA-A51F-3CFB9D7D7C81}.Release|x86.ActiveCfg = Release|Win32
+		{E5C59C4F-0E46-41EA-A51F-3CFB9D7D7C81}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
