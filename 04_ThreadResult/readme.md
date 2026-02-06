@@ -42,6 +42,28 @@
 - 실패 케이스 1회(예외 전달)
 를 연속으로 보여줍니다.
 
+#### `promise`와 `future`가 공유하는 Shared State란?
+
+`std::promise<T>`와 `std::future<T>`는 각각 "생산자/소비자" 역할의 **핸들(handle)** 이고,
+실제 데이터는 둘이 함께 가리키는 내부의 **shared state(공유 상태)** 에 저장됩니다.
+
+shared state에는 보통 아래 정보가 들어 있습니다.
+
+- 결과값 `T` 또는 예외(exception)
+- 준비됨(ready) 상태
+- ready까지 기다릴 수 있는 동기화(대기) 메커니즘
+
+그래서 `future.get()`은
+
+- 아직 ready가 아니면 자동으로 기다리고
+- ready가 되면 결과값을 반환하거나(정상)
+- 저장된 예외를 다시 throw(실패)
+
+를 한 번에 수행합니다.
+
+이게 WinAPI의 `value/error + doneEvent`와 같은 "공유 상태 + 완료 신호" 패턴을
+표준 라이브러리가 실수하기 어렵게(통로로 강제되게) 묶어 준 형태라고 보면 됩니다.
+
 ---
 
 ### WinAPI 버전 (Event + shared state)

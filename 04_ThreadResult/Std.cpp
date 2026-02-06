@@ -24,6 +24,15 @@
 //   - 결과가 아직 준비되지 않았으면 get()이 "완료될 때까지" 자동으로 대기합니다.
 //   - 워커가 set_exception()을 해두면 get()에서 예외가 다시 throw 됩니다.
 //
+// Shared State(공유 상태)
+// - std::promise와 std::future는 "서로 다른 객체"이지만, 내부적으로 같은 shared state를 가리키는 핸들입니다.
+// - shared state에는 보통 아래가 들어있습니다.
+//   1) 결과값(T) 또는 예외(exception)
+//   2) 준비됨(ready) 플래그
+//   3) ready까지 기다릴 수 있는 동기화(대기) 메커니즘
+// - promise는 생산자(값/예외를 채우는 쪽), future는 소비자(대기 후 꺼내 쓰는 쪽) 역할입니다.
+// - future.get()은 "ready가 될 때까지 대기" + "값/예외를 꺼내기"를 한 번에 수행합니다.
+//
 // 포인트
 // - 값 전달과 완료 대기가 하나의 통로(future)로 묶여서 사용 실수가 줄어듭니다.
 // - 예외도 안전하게 전파할 수 있습니다.
@@ -71,6 +80,7 @@ int SMain()
 	{
 		// 성공 케이스
 		std::promise<long long> promise;
+		// get_future()를 호출하는 순간, promise와 future가 같은 shared state를 공유하게 됩니다.
 		std::future<long long> future = promise.get_future();
 
 		std::thread worker(&PromiseWorker, std::move(promise), n, false);
@@ -95,6 +105,7 @@ int SMain()
 	{
 		// 실패 케이스
 		std::promise<long long> promise;
+		// shared state는 값뿐 아니라 "예외"도 담을 수 있습니다.
 		std::future<long long> future = promise.get_future();
 
 		std::thread worker(&PromiseWorker, std::move(promise), n, true);
