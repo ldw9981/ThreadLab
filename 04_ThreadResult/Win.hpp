@@ -24,12 +24,16 @@
 //
 // 포인트
 // - 이 방식의 핵심은 "완료 신호를 기다린 뒤에만 공유 상태를 읽는다"는 규칙(프로토콜)입니다.
+// - 이 규칙을 어기면(예: Wait 전에 value/error를 읽기) 데이터 레이스/미완성 상태 노출로 이어질 수 있습니다.
+//   즉, WinAPI는 '통로가 강제'되지 않기 때문에 오히려 실수에 더 취약해질 수 있습니다.
 // - 예외 전파는 자동으로 되지 않으므로, error code/HRESULT/예외 포인터 등으로 직접 설계해야 합니다.
 
 
 struct WinResultState
 {
 	HANDLE doneEvent = nullptr; // signaled when result is ready
+	// 주의: 아래 value/error는 doneEvent가 signaled 된 뒤에만 읽어야 합니다.
+	// (그 전에 읽는 것은 논리적으로도 틀리고, 동기화 관점에서도 위험합니다.)
 	long long value = 0;
 	DWORD error = 0; // 0 == OK
 	int n = 0;
@@ -68,6 +72,8 @@ unsigned __stdcall WinWorkerProc(void* param)
 	}
 
 	// 완료 신호 publish
+	// 중요: 완료 신호는 반드시 "결과 기록이 끝난 뒤" 마지막에 보내야 합니다.
+	// (만약 SetEvent를 먼저 호출해버리면, 메인 스레드는 깨어나서 미완성 value/error를 읽을 수 있습니다.)
 	::SetEvent(state->doneEvent);
 	return 0;
 }
@@ -107,6 +113,10 @@ int WMain()
 
 	HANDLE workerHandle = reinterpret_cast<HANDLE>(workerHandleRaw);
 	std::cout << "worker tid=" << workerTid << "\n";
+
+	// (의도적으로 주석 처리) 아래처럼 Wait 전에 읽으면, 결과가 아직 준비되지 않았을 수 있습니다.
+	// 또한 워커가 동시에 쓰는 중일 수 있어 데이터 레이스가 됩니다.
+	// std::cout << "[Main] (WRONG) early read value=" << state.value << "\n";
 
 	std::cout << "[Main] waiting for doneEvent...\n";
 	// 완료 신호를 기다린 뒤에만 value/error를 읽습니다.
