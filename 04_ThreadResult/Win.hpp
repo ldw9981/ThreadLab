@@ -26,60 +26,59 @@
 // - 이 방식의 핵심은 "완료 신호를 기다린 뒤에만 공유 상태를 읽는다"는 규칙(프로토콜)입니다.
 // - 예외 전파는 자동으로 되지 않으므로, error code/HRESULT/예외 포인터 등으로 직접 설계해야 합니다.
 
-namespace threadlab04
+
+struct WinResultState
 {
-	struct WinResultState
-	{
-		HANDLE doneEvent = nullptr; // signaled when result is ready
-		long long value = 0;
-		DWORD error = 0; // 0 == OK
-		int n = 0;
-		bool shouldFail = false;
-	};
+	HANDLE doneEvent = nullptr; // signaled when result is ready
+	long long value = 0;
+	DWORD error = 0; // 0 == OK
+	int n = 0;
+	bool shouldFail = false;
+};
 
-	inline long long SumUpTo(int n)
-	{
-		long long total = 0;
-		for (int i = 1; i <= n; ++i)
-			total += i;
-		return total;
-	}
-
-	inline unsigned __stdcall WinWorkerProc(void* param)
-	{
-		auto* state = static_cast<WinResultState*>(param);
-		state->error = 0;
-		state->value = 0;
-
-		// (데모) 메인 스레드가 기다리는 상황을 보여주기 위해 잠깐 지연
-		::Sleep(250);
-
-		// 실패/성공 결과를 shared state에 기록
-		if (state->shouldFail)
-		{
-			state->error = ERROR_GEN_FAILURE;
-		}
-		else if (state->n < 0)
-		{
-			state->error = ERROR_INVALID_DATA;
-		}
-		else
-		{
-			state->value = SumUpTo(state->n);
-		}
-
-		// 완료 신호 publish
-		::SetEvent(state->doneEvent);
-		return 0;
-	}
+long long SumUpTo(int n)
+{
+	long long total = 0;
+	for (int i = 1; i <= n; ++i)
+		total += i;
+	return total;
 }
 
-inline int WMain()
+unsigned __stdcall WinWorkerProc(void* param)
+{
+	auto* state = static_cast<WinResultState*>(param);
+	state->error = 0;
+	state->value = 0;
+
+	// (데모) 메인 스레드가 기다리는 상황을 보여주기 위해 잠깐 지연
+	::Sleep(250);
+
+	// 실패/성공 결과를 shared state에 기록
+	if (state->shouldFail)
+	{
+		state->error = ERROR_GEN_FAILURE;
+	}
+	else if (state->n < 0)
+	{
+		state->error = ERROR_INVALID_DATA;
+	}
+	else
+	{
+		state->value = SumUpTo(state->n);
+	}
+
+	// 완료 신호 publish
+	::SetEvent(state->doneEvent);
+	return 0;
+}
+
+
+int WMain()
 {
 	std::cout << "04_ThreadResult (WinAPI: Event + shared state)\n";
 	std::cout << "main tid=" << ::GetCurrentThreadId() << "\n\n";
 
-	threadlab04::WinResultState state;
+	WinResultState state;
 	state.n = 100000;
 	state.shouldFail = false;
 
@@ -94,7 +93,7 @@ inline int WMain()
 	const uintptr_t workerHandleRaw = _beginthreadex(
 		nullptr,
 		0,
-		&threadlab04::WinWorkerProc,
+		&WinWorkerProc,
 		&state,
 		0,
 		&workerTid);

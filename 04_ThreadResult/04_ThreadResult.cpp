@@ -1,8 +1,8 @@
-#include "Win.hpp"
-#include "Std.hpp"
+#include "Win.h"
+#include "Std.h"
 
 int main()
 {
-	SMain();
+	WMain();
 	return 0;
 }

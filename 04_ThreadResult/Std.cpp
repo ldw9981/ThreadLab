@@ -28,42 +28,40 @@
 // - 값 전달과 완료 대기가 하나의 통로(future)로 묶여서 사용 실수가 줄어듭니다.
 // - 예외도 안전하게 전파할 수 있습니다.
 
-namespace threadlab04
+long long SumUpToStd(int n)
 {
-	inline long long SumUpTo(int n)
+	long long total = 0;
+	for (int i = 1; i <= n; ++i)
+		total += i;
+	return total;
+}
+
+void PromiseWorker(std::promise<long long> promise, int n, bool shouldFail)
+{
+	try
 	{
-		long long total = 0;
-		for (int i = 1; i <= n; ++i)
-			total += i;
-		return total;
+		// (데모) 메인 스레드가 기다리는 상황을 보여주기 위해 잠깐 지연
+		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+		// (데모) 실패 케이스: 예외가 future.get()으로 전달되는지 보여줍니다.
+		if (shouldFail)
+			throw std::runtime_error("worker failed intentionally");
+
+		if (n < 0)
+			throw std::invalid_argument("n must be >= 0");
+
+		// 정상 케이스: 계산 결과를 promise에 저장(=메인 스레드에게 전달)
+		promise.set_value(SumUpToStd(n));
 	}
-
-	inline void PromiseWorker(std::promise<long long> promise, int n, bool shouldFail)
+	catch (...)
 	{
-		try
-		{
-			// (데모) 메인 스레드가 기다리는 상황을 보여주기 위해 잠깐 지연
-			std::this_thread::sleep_for(std::chrono::milliseconds(250));
-
-			// (데모) 실패 케이스: 예외가 future.get()으로 전달되는지 보여줍니다.
-			if (shouldFail)
-				throw std::runtime_error("worker failed intentionally");
-
-			if (n < 0)
-				throw std::invalid_argument("n must be >= 0");
-
-			// 정상 케이스: 계산 결과를 promise에 저장(=메인 스레드에게 전달)
-			promise.set_value(SumUpTo(n));
-		}
-		catch (...)
-		{
-			// 실패 케이스: 예외를 promise에 저장(=메인 스레드 get()에서 다시 throw)
-			promise.set_exception(std::current_exception());
-		}
+		// 실패 케이스: 예외를 promise에 저장(=메인 스레드 get()에서 다시 throw)
+		promise.set_exception(std::current_exception());
 	}
 }
 
-inline int SMain()
+
+int SMain()
 {
 	std::cout << "04_ThreadResult (std::promise / std::future)\n";
 	std::cout << "main tid=" << ::GetCurrentThreadId() << "\n\n";
@@ -75,7 +73,7 @@ inline int SMain()
 		std::promise<long long> promise;
 		std::future<long long> future = promise.get_future();
 
-		std::thread worker(&threadlab04::PromiseWorker, std::move(promise), n, false);
+		std::thread worker(&PromiseWorker, std::move(promise), n, false);
 
 		std::cout << "[Main] waiting for result...\n";
 		try
@@ -99,7 +97,7 @@ inline int SMain()
 		std::promise<long long> promise;
 		std::future<long long> future = promise.get_future();
 
-		std::thread worker(&threadlab04::PromiseWorker, std::move(promise), n, true);
+		std::thread worker(&PromiseWorker, std::move(promise), n, true);
 
 		std::cout << "[Main] waiting for result (failure case)...\n";
 		try
