@@ -14,6 +14,28 @@
 각 워커 스레드는 자신의 thread id를 출력하고, 잠시 대기한 뒤 종료됩니다.
 메인 스레드는 생성한 워커 스레드가 끝날 때까지 기다립니다.
 
+```mermaid
+sequenceDiagram
+    participant Main as Main Thread
+    participant Worker as Worker Thread
+
+    Main->>Worker: create worker thread
+    activate Worker
+
+    par Main Thread is blocked
+        Main->>Main: WaitForSingleObject() / join()
+    and Worker Thread is running
+        Worker->>Worker: run ThreadProc()
+        Worker->>Worker: finish work
+        Worker-->>Main: thread terminated
+    end
+
+    Main->>Main: wait returns
+    Main->>Main: continue after wait/join
+
+    deactivate Worker
+
+```
 ---
 
 ### 2. 개념 정리
