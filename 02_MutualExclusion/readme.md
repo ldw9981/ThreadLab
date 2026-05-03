@@ -14,6 +14,52 @@
 
 모든 스레드가 올바르게 실행되면 `expected`와 `g_Total`이 같아야 합니다.
 
+```mermaid
+%%{init: {"themeVariables": {"noteBkgColor": "transparent", "labelBoxBkgColor": "transparent"}}}%%
+sequenceDiagram
+    participant Main as Main Thread
+    participant T1 as Worker Thread 1
+    participant T2 as Worker Thread 2
+
+    Note over Main: reset g_Total = 0
+    Note over Main: create one shared lock object
+    Main->>T1: create worker thread with shared lock
+    activate T1
+    Main->>T2: create worker thread with shared lock
+    activate T2
+    Note over Main: create remaining workers
+
+    par Worker Thread 1
+        loop i = 1..10000
+            T1->>T1: wait for shared lock
+            critical protected by shared lock
+                Note over T1: g_Total += i
+            end
+        end
+        T1-->>Main: thread finished
+    and Worker Thread 2
+        loop i = 1..10000
+            T2->>T2: wait for shared lock
+            critical protected by shared lock
+                Note over T2: g_Total += i
+            end
+        end
+        T2-->>Main: thread finished
+    and Main Thread
+        Main->>Main: wait for all workers
+    end
+
+    Note over Main: calculate expected
+    Note over Main: print expected and g_Total
+
+    deactivate T1
+    deactivate T2
+```
+
+위 다이어그램에서는 워커 스레드를 2개만 표시했지만, 실제 코드는 같은 패턴의 워커를 `10000`개 생성합니다.
+시퀀스의 생명선은 실행 흐름을 가진 스레드만 두고, `mutex` / `CRITICAL_SECTION`은 `shared lock`이라는 진입 규칙으로 표시했습니다.
+핵심은 여러 워커가 동시에 실행되더라도 `g_Total`을 읽고 수정하고 쓰는 구간은 락을 잡은 스레드 하나만 통과한다는 점입니다.
+
 ---
 
 ### 2. 개념 정리
