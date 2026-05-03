@@ -1,183 +1,150 @@
 03_SignalWaiting
 ======================
 
-### 1. 어떻게 OS는 CPU에서 여러 프로그램을 실행할수 있을까?
+### 1. 목표
 
- CPU는 한 순간에 하나의 명령어 흐름만 실행하지만, 운영체제가 아주 빠르게 실행 대상을 바꿔가며
-여러 프로그램(쓰레드가)이 동시에 실행되는 것처럼 보이게 만든다. 이 역할을 하는것이 OS의 스케줄러(scheduler)이다.
-CPU 혼자서는 절대 “바꿔 실행” 못하므로  OS가 개입할 수 있는 타이밍이 필요함.
+메인 스레드가 워커 스레드를 일시정지, 재개, 종료시키는 방법을 비교합니다.
 
- 퀀텀(Time Quantum)은 운영체제가 하나의 스레드에게 “연속적으로 CPU를 점유하여 사용할 수 있도록 허용하는 최대 시간”이다.
-운영체제는 하드웨어 타이머 인터럽트를 이용해 스레드의 실행 시간을 측정하고, 퀀텀이 소진되면 
-스케줄러가 개입해 필요하면 선점(preemption: 실행 중인 스레드의 CPU를 운영체제가 강제로 회수하는 것)하고 다른 쓰레드에 CPU를 담당한다.
-이때의 CPU의 레지스터 상태를 저장/복원하는 작업을 문맥 교환(context switch)이라고 한다. 
+이 프로젝트에서는 워커 스레드가 1초마다 `Tick` / `Tock`을 번갈아 출력합니다.
+메인 스레드는 키 입력을 받아 워커 스레드의 실행 상태를 제어합니다.
 
-퀀텀을 확인하는 타이머 인터럽트 뿐만아니라 운영체제는 다양한 이벤트(예: I/O 사용, 동기화 오브젝트 신호 등)를 감지하여 
-스레드의 상태를 변경하고 스케줄링 결정을 내린다. 즉 OS가 개입하는 순간은 인터럽트이며 대표적인 인터럽트는 아래와같다. 
- * ⏱ 타이머 인터럽트 : “너 지금 너무 오래 썼어”
- * ⌨️ I/O 인터럽트: 키보드, 마우스, 디스크, 네트워크
- * 🚨 시스템 콜 : 스레드가 OS 기능을 요청할 때
+- `T`: Pause / Continue 토글
+- `Q`: 종료 요청
 
-이 인터럽트가 발생하면: CPU는 현재 실행 중인 스레드를 멈춤 -> OS 커널 코드로 점프 -> 스케줄러 실행
+Std 버전은 `std::condition_variable`을 사용하고, WinAPI 버전은 Event 객체를 사용합니다.
 
+---
 
-### 2. OS에서 스레드 상태(Thread State)의 정의
+### 2. 개념 정리
 
-```
+#### 스케줄러와 문맥 교환
+
+CPU는 한 순간에 하나의 명령어 흐름만 실행하지만, 운영체제는 실행 대상을 아주 빠르게 바꿔가며 여러 스레드가 동시에 실행되는 것처럼 보이게 합니다.
+이 역할을 하는 것이 OS의 스케줄러(scheduler)입니다.
+
+운영체제는 하드웨어 타이머 인터럽트로 스레드가 CPU를 사용한 시간을 측정합니다.
+스레드가 허용된 시간인 퀀텀(Time Quantum)을 소진하거나, 더 높은 우선순위의 스레드가 실행 가능해지면 스케줄러가 개입합니다.
+
+이때 현재 스레드의 CPU 레지스터 상태를 저장하고, 다음 스레드의 레지스터 상태를 복원하는 작업을 **문맥 교환(context switch)** 이라고 합니다.
+
+OS가 스케줄링에 개입하는 대표적인 순간은 아래와 같습니다.
+
+- 타이머 인터럽트: 퀀텀 소진
+- I/O 인터럽트: 키보드, 마우스, 디스크, 네트워크 작업 완료
+- 시스템 콜: 스레드가 OS 기능을 요청할 때
+- 동기화 신호: Event, Mutex, Condition Variable 등의 상태 변화
+
+#### 스레드 상태
+
+스레드는 실행 가능 여부와 대기 조건에 따라 상태가 바뀝니다.
+
+```text
 +----------+      dispatch      +----------+
 |  READY   |------------------->| RUNNING  |
 +----------+                    +----------+
      ^                               |
      |                               |
-     |      preempt (quantum/pri)    |  wait/sleep/io
-     +-------------------------------+----------------+
-                                     |                |
-                                     v                |
-                                +----------+          |
-                                | BLOCKED  |          |
-                                | WAITING  |          |
-                                +----------+          |
-                                     |                |
-                                     | unblock        |
-                                     +----------------+
+     |      preempt                  | wait / sleep / I-O
+     +-------------------------------+
                                      |
-                                     | return/exit
                                      v
                                 +----------+
-                                |TERMINATED|
-                                +----------+                   
-                                
-READY -> RUNNING: 디스패치(코어 할당)
-RUNNING -> READY: 선점(퀀텀 소진/우선순위)
-RUNNING -> BLOCKED: Wait/Sleep/I-O로 대기 진입
-BLOCKED -> READY: 이벤트/I-O 완료로 깨어남(unblock)
-RUNNING -> TERMINATED: 스레드 함수 종료(return/exit)
+                                | BLOCKED  |
+                                | WAITING  |
+                                +----------+
+                                     |
+                                     | unblock
+                                     v
+                                +----------+
+                                |  READY   |
+                                +----------+
 ```
 
-#### [Running] (실행 중)
+- `Running`: 실제 CPU 코어에서 실행 중인 상태
+- `Ready`: 실행 가능하지만 아직 CPU를 받지 못한 상태
+- `Blocked / Waiting`: 어떤 조건이 만족될 때까지 기다리는 상태
+- `Terminated`: 스레드 함수가 종료된 상태
 
-의미
-* 스레드가 지금 이 순간 실제 CPU 코어 위에서 명령어를 실행 중인 상태.
-* 코어가 N개면, 동시에 Running인 스레드는 최대 N개.
+이 프로젝트에서 Pause 상태의 워커 스레드는 CPU를 계속 쓰면서 반복 검사하는 것이 아니라,
+조건이 바뀔 때까지 대기 상태로 들어가도록 구현합니다.
 
-커널 관점에서 실제로 일어나는 일 
-* 스레드는 **현재 CPU의 “현재 실행 스레드(current thread)”**로 선택됨.
-* 스레드의 레지스터 컨텍스트가 CPU에 로드되어 있음
-  * RIP/EIP(다음 명령어), RSP/ESP(스택 포인터), 일반 레지스터, SIMD 상태 일부 등
-* 타이머 인터럽트(틱)나 더 높은 우선순위 스레드 등장 등으로 언제든 Running에서 내려올 수 있음
+#### Std 버전
 
-Running에서 빠져나오는 대표 케이스
- 1. 타임 슬라이스(퀀텀) 소진 → Ready로 (선점 스케줄링)
- 2. 더 높은 우선순위 스레드가 Ready가 됨 → Ready로 (선점)
- 3. 락/이벤트/I/O를 기다리는 API 호출 → Blocked로
- 4. 스레드 종료 → Terminated로
+Std 버전은 `std::condition_variable`로 조건 대기를 구현합니다.
 
-#### [Ready] (실행 가능, 하지만 CPU를 못 받은 상태)
+```cpp
+ctrl->cv.wait(lock, [&] { return ctrl->exitRequested || ctrl->running; });
+```
 
-의미
-* 스레드가 실행에 필요한 조건을 모두 만족했는데,
-* 아직 CPU 코어에 배정되지 않은 상태.
-* "돌 준비는 끝났는데, 차례가 안 와서 줄 서 있는 상태.”
+- `std::mutex`: 상태값 보호
+- `std::condition_variable`: 조건이 만족될 때까지 대기
+- `notify_all`: 대기 중인 워커 스레드를 깨움
 
-커널 관점에서 실제로 일어나는 일
-* 스레드는 Ready Queue(실행 대기열) 같은 스케줄링 자료구조에 들어감.
-* 스케줄러는 우선순위/CPU 부하/어피니티 등을 고려해서
-  * Ready 상태 스레드 중 하나를 뽑아 Running으로 보냄(디스패치)
+워커 스레드는 `running == false`이면 대기하고, 메인 스레드가 `running`을 다시 `true`로 바꾼 뒤 `notify_all()`을 호출하면 깨어납니다.
+종료할 때는 `exitRequested = true`로 바꾼 뒤 워커를 깨웁니다.
 
-Ready가 되는 대표 케이스
-1. 새로 생성된 스레드가 시작 가능해짐
-2. Blocked 상태에서 기다리던 이벤트가 발생함(Wait 해제)
-3.Running 중 선점(preempt) 당함(퀀텀 소진 or 우선순위 밀림)
+#### WinAPI 버전
 
-Ready 상태에서 “못 도는” 이유 예시
-* CPU가 이미 다른 스레드로 꽉 차 있음
-* 우선순위가 낮아서 계속 밀림(Starvation 가능)
-* 어피니티 때문에 특정 코어만 기다리느라 지연
+WinAPI 버전은 두 개의 manual-reset Event로 워커 스레드를 제어합니다.
 
+- `runEvent`: signaled이면 실행, non-signaled이면 pause
+- `exitEvent`: signaled이면 종료
 
-#### [Blocked / Waiting] (대기 중)
+워커 스레드는 두 Event 중 하나가 신호 상태가 될 때까지 기다립니다.
 
-의미
-* 스레드가 스스로 실행을 못 하는 상태 -> 어떤 조건이 충족될 때까지 기다려야 함
-* 그래서 스케줄러 관점에서 실행 후보(Ready Queue)에서 제외됨.
-* 한 문장으로: “조건이 충족되기 전까지는 CPU 줘도 할 일이 없어서, 잠들어 있는 상태.”
+```cpp
+HANDLE waits[2] = { ctrl->exitEvent, ctrl->runEvent };
+const DWORD w = ::WaitForMultipleObjects(2, waits, FALSE, INFINITE);
+```
 
-커널 관점에서 실제로 일어나는 일
-* 스레드는 Ready Queue에서 빠지고,
-* 대기 대상 오브젝트의 Wait List(대기자 명단)에 등록됨.
-  * 예: Event/Mutex/Semaphore/Timer/I/O completion 등
-* 기다리는 조건이 만족되면 커널이 그 스레드를 Ready로 깨움(unblock)
+메인 스레드는 `T` 입력에 따라 `SetEvent(runEvent)` 또는 `ResetEvent(runEvent)`를 호출하고,
+`Q` 입력이 들어오면 `SetEvent(exitEvent)`로 종료를 알립니다.
 
-Blocked로 들어가는 대표 원인(= 기다리는 대상)
-* 시간 대기: Sleep, 타이머
-* 동기화 오브젝트 대기: WaitForSingleObject, 조건변수 wait
-* I/O 대기: 파일/네트워크/디바이스 I/O 완료
-* 락 경합: mutex를 얻을 때까지 대기(커널 mutex일 경우)
-* (고급) APC/Alertable wait 같은 특수 대기
+---
 
-Blocked에서 깨는 대표 케이스
-* 이벤트 Set / 세마포어 Release
-* 타이머 만료
-* I/O 완료
-* 조건변수 notify
-* 타임아웃 발생(그냥 Ready로 돌아오되 “실패/timeout” 결과)
+### 3. 실행 방법 / 결과
 
+현재 `03_SignalWaiting.cpp`의 `main()`은 `SMain()`을 호출합니다.
 
-### 3. WinAPI 과 STL 의 쓰레드 프로그래밍  
+```cpp
+int main()
+{
+    SMain();
+    return 0;
+}
+```
 
-WinAPI는 운영체제의 ‘객체’를 직접 다루게 하고,
-C++ STL은 그 객체들을 사용하는 ‘패턴’을 추상화한다.
-STL은 내부에서 OS를 쓰지만, 그 사실을 의도적으로 숨긴다.
+따라서 기본 실행은 `std::thread + std::condition_variable` 버전입니다.
+WinAPI 버전을 실행하려면 `SMain()` 대신 `WMain()`을 호출하면 됩니다.
 
-WinAPI
-* OS 리소스 중심
-* 커널 객체(Event, Mutex, Semaphore, Thread)
-* 상태(signaled / non-signaled)가 명확
-* Wait/Set/Reset 같은 명령형 제어
+```cpp
+int main()
+{
+    WMain();
+    return 0;
+}
+```
 
-C++ STL
-* 의도/사용 패턴 중심
-* 상호배제, 조건 대기, 작업 완료 대기
-* 상태는 사용자 코드에 분산
-* RAII + 규칙 강제
+실행하면 워커 스레드가 아래처럼 1초마다 출력합니다.
 
+```text
+Tick
+Tock
+Tick
+Tock
+```
 
-#### OS에 비종속된 개념 기반으로 STL은 다음의 솔루션을 제공한다.
+키 입력에 따른 결과는 아래와 같습니다.
 
-(1) 동시에 접근해도 괜찮은가? 
-→ 상호배제 (Mutual Exclusion)
+- `T`: 출력이 멈추거나 다시 시작됩니다.
+- `Q`: 워커 스레드에 종료를 요청하고 프로그램이 종료됩니다.
 
-(2) 어떤 조건이 될 때까지 기다려야 하는가?
-→ 조건 대기 (Condition Waiting)
+---
 
-(3) 작업이 끝났음을 어떻게 알릴 것인가?
-→ 완료 신호 (Completion / Notification)
+### 4. 핵심 정리
 
-(4) 자원이 몇 개 있는가?
-→ 자원 수 제한 (Counting)
-
-(5) 언제 그만두라고 알려줄 것인가?
-→ 종료 요청 (Cancellation / Stop)
-
-
-| 보편 개념 (OS 비종속) | STL 도구                   
-| -------------- 
-| 상호배제      | `std::mutex`                      
-| 조건 대기     | `std::condition_variable`         
-| 완료 대기     | `std::future` / `promise`         
-| 자원 카운트   | `std::counting_semaphore` (C++20) 
-| 생명주기 제어 | `std::jthread` / `stop_token`    
-| 원자적 상태   | `std::atomic`                     
-
-
-
-
-
-
-### 4. 실습: 메인 스레드에서 Pause/Continue 제어하기
-
-03_SignalWaiting 프로젝트는 메인 스레드가 워커 스레드를 생성하고, 워커 스레드는 1초마다 `Tick` / `Tock`을 번갈아 출력한다.
-
-키 입력(메인 스레드)
-* `T`: Pause <-> Continue 토글
-* `Q`: 종료
+- 스레드는 `Running`, `Ready`, `Blocked / Waiting` 같은 상태를 오가며 실행됩니다.
+- Pause 상태에서는 CPU를 계속 점유하지 말고 조건 대기 상태로 들어가는 편이 좋습니다.
+- C++ 표준 방식에서는 `std::condition_variable`로 조건 대기를 구현합니다.
+- WinAPI 방식에서는 Event 객체의 signaled / non-signaled 상태로 대기를 제어할 수 있습니다.
+- 종료 요청도 하나의 신호로 보고, 워커 스레드가 안전한 지점에서 빠져나오게 설계해야 합니다.

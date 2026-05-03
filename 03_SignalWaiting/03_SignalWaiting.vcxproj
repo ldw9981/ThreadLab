@@ -124,8 +124,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="03_SignalWaiting.cpp" />
-    <ClCompile Include="Win.hpp" />
-    <ClCompile Include="Std.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Std.hpp" />
+    <ClInclude Include="Win.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />

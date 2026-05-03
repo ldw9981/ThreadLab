@@ -15,12 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Win.hpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Std.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="04_ThreadResult.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -29,10 +23,10 @@
     <None Include="readme.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Std.h">
+    <ClInclude Include="Std.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Win.h">
+    <ClInclude Include="Win.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

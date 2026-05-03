@@ -5,14 +5,14 @@
 #include <iostream>
 
 
-constexpr DWORD kSleepMs = 2000;
+constexpr DWORD kWinSleepMs = 2000;
 
 DWORD WINAPI WinThreadProc(LPVOID)
 {
 	const char* tag = "::CreateThread()";
 	const DWORD tid = ::GetCurrentThreadId();
 	std::cout << "[" << tag << "] thread start. tid=" << tid << "\n";
-	::Sleep(kSleepMs);
+	::Sleep(kWinSleepMs);
 	std::cout << "[" << tag << "] thread end.   tid=" << tid << "\n";
     return 0;
 }
@@ -48,7 +48,7 @@ unsigned __stdcall CrtThreadProc(void*)
 	const char* tag = "::_beginthreadex()";
 	const DWORD tid = ::GetCurrentThreadId();
 	std::cout << "[" << tag << "] thread start. tid=" << tid << "\n";
-	::Sleep(kSleepMs);
+	::Sleep(kWinSleepMs);
 	std::cout << "[" << tag << "] thread end.   tid=" << tid << "\n";
     return 0;
 }

@@ -1,5 +1,5 @@
-#include "Win.h"
-#include "Std.h"
+#include "Win.hpp"
+#include "Std.hpp"
 
 int main()
 {

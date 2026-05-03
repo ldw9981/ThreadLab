@@ -124,15 +124,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="04_ThreadResult.cpp" />
-    <ClCompile Include="Win.hpp" />
-    <ClCompile Include="Std.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Std.h" />
-    <ClInclude Include="Win.h" />
+    <ClInclude Include="Std.hpp" />
+    <ClInclude Include="Win.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -123,12 +123,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Std.hpp" />
-    <ClCompile Include="Win.hpp" />
     <ClCompile Include="01_ThreadLifeCycle.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="readme.rd" />
+    <ClInclude Include="Std.hpp" />
+    <ClInclude Include="Win.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="readme.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

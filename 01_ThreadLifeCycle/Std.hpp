@@ -4,14 +4,14 @@
 #include <thread>
 #include <iostream>
 
-constexpr DWORD kSleepMs = 2000;
+constexpr DWORD kStdSleepMs = 2000;
 
 void ThreadProc()
 {
 	const char* tag = "std::thread";
 	const DWORD tid = ::GetCurrentThreadId();
 	std::cout << "[" << tag << "] thread start. tid=" << tid << "\n";
-	::Sleep(kSleepMs);
+	::Sleep(kStdSleepMs);
 	std::cout << "[" << tag << "] thread end.   tid=" << tid << "\n";
 }
 
