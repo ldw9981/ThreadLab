@@ -16,6 +16,26 @@
 Std 버전은 `std::promise` / `std::future`를 사용하고,
 WinAPI 버전은 Event와 공유 상태(shared state)를 직접 구성합니다.
 
+```mermaid
+sequenceDiagram
+    participant Main as Main Thread
+    participant Worker as Worker Thread
+
+    Main->>+Worker: 작업 시작 요청
+    Note right of Worker: 계산
+    alt 성공
+        Note right of Worker: 결과값 설정
+    else 실패
+        Note right of Worker: 오류/예외 설정
+    end
+    Note right of Worker: 완료 알림
+    deactivate Worker
+
+    Main->>Main: 완료 여부 확인 후 대기
+    Note over Main: 결과 또는 오류 확인
+    Main->>Main: 스레드 종료 여부 확인 후 대기(join / wait)
+```
+
 ---
 
 ### 2. 개념 정리
