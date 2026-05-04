@@ -22,10 +22,30 @@ Std 버전은 `std::condition_variable`을 사용하고, WinAPI 버전은 Event 
 CPU는 한 순간에 하나의 명령어 흐름만 실행하지만, 운영체제는 실행 대상을 아주 빠르게 바꿔가며 여러 스레드가 동시에 실행되는 것처럼 보이게 합니다.
 이 역할을 하는 것이 OS의 스케줄러(scheduler)입니다.
 
-운영체제는 하드웨어 타이머 인터럽트로 스레드가 CPU를 사용한 시간을 측정합니다.
-스레드가 허용된 시간인 퀀텀(Time Quantum)을 소진하거나, 더 높은 우선순위의 스레드가 실행 가능해지면 스케줄러가 개입합니다.
+운영체제는 하드웨어 타이머 인터럽트로 각 스레드가 CPU를 얼마나 사용했는지 추적합니다.
+실행 중인 스레드가 허용된 시간인 퀀텀(Time Quantum)을 모두 사용하거나,
+더 높은 우선순위의 스레드가 실행 가능한 상태가 되면 스케줄러가 다음 실행 대상을 다시 고릅니다.
 
-이때 현재 스레드의 CPU 레지스터 상태를 저장하고, 다음 스레드의 레지스터 상태를 복원하는 작업을 **문맥 교환(context switch)** 이라고 합니다.
+실행 가능한 스레드가 CPU를 아직 받지 못한 상태를 `Ready`라고 합니다.
+`Ready` 상태의 스레드는 필요한 조건은 모두 만족했기 때문에 CPU만 배정되면 바로 실행될 수 있습니다.
+스케줄러가 그중 하나를 선택해 실제 CPU에서 실행시키면 스레드는 `Ready`에서 `Running`으로 바뀝니다.
+이 전환을 **dispatch**라고 합니다.
+
+반대로 `Running` 상태의 스레드가 퀀텀을 다 쓰거나 더 높은 우선순위의 스레드에게 CPU를 넘겨야 하는 상황이 생기면,
+실행 중이던 스레드는 CPU를 빼앗기고 다시 `Ready` 상태로 돌아갈 수 있습니다.
+이 전환을 **preempt**라고 합니다.
+
+CPU에서 실행할 스레드가 바뀔 때는 현재 스레드의 CPU 레지스터 상태를 저장하고,
+다음 스레드의 레지스터 상태를 복원해야 합니다.
+이 작업을 **문맥 교환(context switch)** 이라고 합니다.
+문맥 교환은 보통 `dispatch`나 `preempt`처럼 CPU의 실행 주체가 바뀌는 시점에 함께 일어납니다.
+
+스레드가 직접 기다리는 상태로 들어가는 경우도 있습니다.
+예를 들어 `Sleep`, I/O 대기, `condition_variable::wait`, `WaitForMultipleObjects`처럼 조건이 만족될 때까지 기다리는 API를 호출하면,
+그 스레드는 CPU를 계속 붙잡고 있지 않고 `Blocked / Waiting` 상태로 이동합니다.
+`Blocked / Waiting` 상태의 스레드는 아직 대기 조건이 풀리지 않았기 때문에, CPU를 배정받아도 바로 실행을 계속할 수 없습니다.
+시간이 지나거나 I/O가 완료되거나 동기화 객체가 신호 상태가 되면 대기 조건이 풀리고,
+스레드는 다시 `Ready` 상태가 되어 스케줄러의 선택을 기다립니다.
 
 OS가 스케줄링에 개입하는 대표적인 순간은 아래와 같습니다.
 
@@ -38,31 +58,25 @@ OS가 스케줄링에 개입하는 대표적인 순간은 아래와 같습니다
 
 스레드는 실행 가능 여부와 대기 조건에 따라 상태가 바뀝니다.
 
-```text
-+----------+      dispatch      +----------+
-|  READY   |------------------->| RUNNING  |
-+----------+                    +----------+
-     ^                               |
-     |                               |
-     |      preempt                  | wait / sleep / I-O
-     +-------------------------------+
-                                     |
-                                     v
-                                +----------+
-                                | BLOCKED  |
-                                | WAITING  |
-                                +----------+
-                                     |
-                                     | unblock
-                                     v
-                                +----------+
-                                |  READY   |
-                                +----------+
+```mermaid
+stateDiagram-v2
+    [*] --> Ready
+    Ready --> Running: dispatch
+    Running --> Ready: preempt
+    Running --> BlockedWaiting: wait / sleep / I-O
+    BlockedWaiting --> Ready: unblock
+    Running --> Terminated: thread function returns
+    Terminated --> [*]
+
+    state "READY" as Ready
+    state "RUNNING" as Running
+    state "BLOCKED / WAITING" as BlockedWaiting
+    state "TERMINATED" as Terminated
 ```
 
 - `Running`: 실제 CPU 코어에서 실행 중인 상태
-- `Ready`: 실행 가능하지만 아직 CPU를 받지 못한 상태
-- `Blocked / Waiting`: 어떤 조건이 만족될 때까지 기다리는 상태
+- `Ready`: 실행 조건은 만족했지만 아직 CPU를 받지 못한 상태
+- `Blocked / Waiting`: 대기 조건이 풀리지 않아 CPU를 받아도 아직 실행을 계속할 수 없는 상태
 - `Terminated`: 스레드 함수가 종료된 상태
 
 이 프로젝트에서 Pause 상태의 워커 스레드는 CPU를 계속 쓰면서 반복 검사하는 것이 아니라,
